@@ -46,7 +46,7 @@ router.get('/form/:page', auth, (req, res) => {
 //patient
 // post form
 // req.body = { all things needed to make up a form, except for id and resolved values }
-router.post('form', auth, (req, res) => {
+router.post('/form', auth, (req, res) => {
     const payload = req.body
     const queryData = [req.id, payload.clinic, payload.checkUpDate, payload.description]
     //resolved - default = false
