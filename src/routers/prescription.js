@@ -29,3 +29,5 @@ router.post('prescription', auth, (req, res) => {
         res.status(200).send({ code: 200, forms: result })
     })
 })
+
+module.exports = router

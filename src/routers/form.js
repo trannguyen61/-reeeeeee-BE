@@ -12,10 +12,13 @@ router.get('/form', auth, (req, res) => {
     // SELECT * FROM forms WHERE clinic = 
     // ( SELECT clinic FROM doctor WHERE id = req.id )
 
-    db.query('SELECT * FROM checkupform WHERE resolved = FALSE AND clinic = (SELECT clinic FROM doctors WHERE doctorID = ?)', req.id,
+    db.query('SELECT * FROM checkupform WHERE resolved is null AND clinic = (SELECT clinic FROM doctors WHERE doctorID = ?)', req.id,
         (err, result) => {
-            if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
-
+            if (err) {
+                console.log(err)
+                return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+            }
+                // console.log(result)
             res.status(200).send({ code: 200, forms: result })
         })
 
@@ -32,11 +35,11 @@ router.get('/form', auth, (req, res) => {
 })
 
 // patient
-// get sets of 3 of forms that patient made, up to date
+// get sets of 2 of forms that patient made, up to date
 // req.body = 0
 router.get('/form/:page', auth, (req, res) => {
-    const query = 'SELECT * FROM checkupform WHERE patient = ? LIMIT ?, 3 ORDER BY checkUpDate DESC'
-    db.query(query, [req.id, req.params.page ? req.params.page * 3 : 0], (err, result) => {
+    const query = 'SELECT * FROM checkupform WHERE patient = ? LIMIT ?, 2 ORDER BY checkUpDate DESC'
+    db.query(query, [req.id, req.params.page ? req.params.page * 2 : 0], (err, result) => {
         if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
 
         res.status(200).send({ code: 200, forms: result })
@@ -48,11 +51,15 @@ router.get('/form/:page', auth, (req, res) => {
 // req.body = { all things needed to make up a form, except for id and resolved values }
 router.post('/form', auth, (req, res) => {
     const payload = req.body
-    const queryData = [req.id, payload.clinic, payload.checkUpDate, payload.description]
+    const checkUpDate = payload.checkUpDate ? payload.checkUpDate.replace('T', ' ').concat(':00') : payload.checkUpDate
+    const queryData = [req.id, +payload.clinic, checkUpDate, payload.description]
     //resolved - default = false
+    // console.log(queryData)
     const query = 'INSERT INTO checkupform(patient, clinic, checkUpDate, description) VALUES(?)'
-    db.query(query, queryData, (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Create form failed.' })
+    db.query(query, [queryData], (err, result) => {
+        if (err) {
+            // console.log(err)
+            return res.status(400).send({ code: 400, err: 'Create form failed.' })}
 
         res.status(200).send({ code: 200 })
     })
@@ -68,3 +75,5 @@ router.patch('/form', auth, (req, res) => {
         res.status(200).send({ code: 200 })
     })
 })
+
+module.exports = router

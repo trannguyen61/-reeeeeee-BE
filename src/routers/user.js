@@ -40,7 +40,7 @@ router.post('/login', (req, res) => {
 
     const query = 'SELECT userID FROM users WHERE email = ? AND userPassword = ?'
 
-    db.query(query, queryData, (err, result) => {
+    db.query(query, queryData, async (err, result) => {
         if (err || result.length !== 1) {
             console.log(err || 'LOGIN FAILED')
             return res.status(400).send({ code: 400, err: "Login failed." })
@@ -48,9 +48,16 @@ router.post('/login', (req, res) => {
         else {
             console.log(result)
             const token = getToken(payload.email)
-            const role = getRole(result[0].userID)
-            console.log(result[0].userID)
-            res.status(200).send({ code: 200, token, role })
+            try {
+                const role = await getRole(result[0].userID)
+
+                // console.log(result[0].userID)
+                console.log(role)
+                res.status(200).send({ code: 200, token, role })
+            } catch(err) {
+                return res.status(401).send({code: 401, err})
+            }
+            
         }
     })
 })
@@ -60,9 +67,13 @@ const getToken = (email) => {
 }
 
 const getRole = (id) => {
-    db.query('SELECT * FROM patients WHERE patientID = ?', id, (err, result) => {
-        if (result.length !== 0) return 'patient'
-        else return 'doctor'
+    return new Promise((resolve, reject) => {
+        db.query('SELECT * FROM patients WHERE patientID = ?', id, (err, result) => {
+            // console.log(result)
+            if (err) reject('Role authentication failed')
+            if (result.length !== 0) resolve('patient')
+            else resolve('doctor')
+        })
     })
 }
 
