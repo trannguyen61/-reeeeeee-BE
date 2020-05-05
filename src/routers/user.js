@@ -2,8 +2,6 @@ const express = require('express')
 const router = new express.Router()
 const jwt = require('jsonwebtoken')
 
-const auth = require('../middleware/auth')
-
 //changes in db variables name
 //also need to change this in frontend
 
@@ -19,7 +17,7 @@ router.post('/signup', (req, res) => {
             return res.status(400).send({ code: 400, err: "Signup failed." })
         }
         else {
-            db.query('INSERT INTO patients SET patientID = LAST_INSERT_ID()', (err, result) => {
+            db.query('INSERT INTO patients SET patientID = ?', result.insertId, (err, result) => {
                 if (err) {
                     console.log(err)
                     return res.status(400).send({ code: 400, err: "Signup failed." })
@@ -43,7 +41,7 @@ router.post('/login', (req, res) => {
     db.query(query, queryData, async (err, result) => {
         if (err || result.length !== 1) {
             console.log(err || 'LOGIN FAILED')
-            return res.status(400).send({ code: 400, err: "Login failed." })
+            return res.status(401).send({ code: 401, err: "Login failed." })
         }
         else {
             console.log(result)
@@ -63,7 +61,7 @@ router.post('/login', (req, res) => {
 })
 
 const getToken = (email) => {
-    return jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '3h' })
+    return jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '24h' })
 }
 
 const getRole = (id) => {

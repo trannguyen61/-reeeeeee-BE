@@ -2,31 +2,36 @@ const express = require('express')
 const router = new express.Router()
 const auth = require('../middleware/auth')
 
-//untouched
-
 // patient
 // get sets of 3 of received prescriptions
 // req.body = 0
-router.get('/prescription/:page', auth, (req, res) => {
-    const query = 'SELECT * FROM prescriptions WHERE patient = ? LIMIT ?, 3'
-    db.query(query, [req.id, req.params.page*3], (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
-        
-        res.status(200).send({ code: 200, forms: result })
+router.get('/prescription', auth, (req, res) => {
+    console.log(req.url)
+    const query = 'SELECT * FROM prescription JOIN checkUpForm ON prescription.checkUpForm= checkUpForm.formID WHERE patient = ? LIMIT ?, 2'
+    db.query(query, [req.id, req.query.page*req.query.num], (err, result) => {
+        if (err) {console.log(err); return res.status(400).send({ code: 400, err: 'Fetch data failed.' })}
+
+        db.query('SELECT COUNT(*) as SUM FROM prescription JOIN checkUpForm ON prescription.checkUpForm= checkUpForm.formID WHERE patient = ?', req.id, (err, result2) => {
+            // console.log(result)
+            res.status(200).send({ code: 200, result, dataLength: result2[0].SUM })    
+        })
     })
 })
 
 //doctor
 // post prescription
 // req.body = { things needed to make a prescription }
-router.post('prescription', auth, (req, res) => {
+router.post('/prescription', auth, (req, res) => {
     const payload = req.body
-    const queryData = [payload.checkup_form, req.id, payload.diagnosis, payload.medicine, payload.dose, payload.re_exam_time]
-    db.query('INSERT INTO prescriptions VALUES(?)', queryData, 
+    const queryData = [+payload.form, req.id, payload.diagnosis, payload.medicine, payload.dose, payload.time? payload.time : null]
+    db.query('INSERT INTO prescription(checkUpForm, doctor, diagnosis, medicine, dose, reExaminationTime) VALUES(?)', [queryData], 
     (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+        if (err) {
+            console.log(err)
+            return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+        }
 
-        res.status(200).send({ code: 200, forms: result })
+        res.status(200).send({ code: 200 })
     })
 })
 

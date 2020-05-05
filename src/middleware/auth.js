@@ -23,6 +23,7 @@ module.exports = function auth(req, res, next) {
             next()
         })
     } catch(err) {
+        console.log(err)
         res.status(401).send({ code: 401, err: "Authentication failed." })
     }
 }
