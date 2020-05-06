@@ -1,4 +1,5 @@
 const sql = require('mysql')
+
 const connection = sql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -6,11 +7,6 @@ const connection = sql.createPool({
     database: process.env.DB_NAME
 })
 
-// connection.connect((err) => {
-//     if (err) throw err
-//     console.log('Database is connected.')
-// })
-
-global.db = connection
+global.db = connection;
 
 module.exports = connection

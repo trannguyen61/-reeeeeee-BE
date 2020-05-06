@@ -16,10 +16,10 @@ router.get('/form', auth, (req, res) => {
         (err, result) => {
             if (err) {
                 console.log(err)
-                return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+                return res.status(400).send({ message: 'Fetch data failed.' })
             }
                 // console.log(result)
-            res.status(200).send({ code: 200, forms: result })
+            res.status(200).send({ forms: result })
         })
 
     // 2 query
@@ -40,9 +40,9 @@ router.get('/form', auth, (req, res) => {
 router.get('/form/:page', auth, (req, res) => {
     const query = 'SELECT * FROM checkupform WHERE patient = ? LIMIT ?, 2 ORDER BY checkUpDate DESC'
     db.query(query, [req.id, req.params.page ? req.params.page * 2 : 0], (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+        if (err) return res.status(400).send({ message: 'Fetch data failed.' })
 
-        res.status(200).send({ code: 200, forms: result })
+        res.status(200).send({ forms: result })
     })
 })
 
@@ -59,9 +59,9 @@ router.post('/form', auth, (req, res) => {
     db.query(query, [queryData], (err, result) => {
         if (err) {
             // console.log(err)
-            return res.status(400).send({ code: 400, err: 'Create form failed.' })}
+            return res.status(400).send({ message: 'Create form failed.' })}
 
-        res.status(200).send({ code: 200 })
+        res.status(200)
     })
 })
 
@@ -70,9 +70,9 @@ router.post('/form', auth, (req, res) => {
 // req.body = { form.id, value }
 router.patch('/form', auth, (req, res) => {
     db.query('UPDATE checkupform SET resolved = ? WHERE formID = ?', [req.body.value, req.body.formID], (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Update failed.' })
+        if (err) return res.status(400).send({ message: 'Update failed.' })
 
-        res.status(200).send({ code: 200 })
+        res.status(200)
     })
 })
 

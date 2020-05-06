@@ -8,23 +8,24 @@ const jwt = require('jsonwebtoken')
 router.post('/signup', (req, res) => {
     const payload = req.body
     const queryData = [payload.email, payload.userName, payload.phoneNumber, payload.userPassword, payload.dateOfBirth, payload.idCardSerial]
-    if (!payload.email || !payload.userName || !payload.phoneNumber || !payload.userPassword) return res.status(400).send({ code: 400, err: "Missing credentials." })
+    if (!payload.email || !payload.userName || !payload.phoneNumber || !payload.userPassword) 
+        return res.status(400).send({ message: "Missing credentials." })
 
     const query = 'INSERT INTO `users` (email, userName, phoneNumber, userPassword, dateOfBirth, idCardSerial) VALUES (?)'
     db.query(query, [queryData], (err, result) => {
         if (err) {
             console.log(err)
-            return res.status(400).send({ code: 400, err: "Signup failed." })
+            return res.status(400).send({ message: "Signup failed." })
         }
         else {
             db.query('INSERT INTO patients SET patientID = ?', result.insertId, (err, result) => {
                 if (err) {
                     console.log(err)
-                    return res.status(400).send({ code: 400, err: "Signup failed." })
+                    return res.status(400).send({ message: "Signup failed." })
                 }
                 console.log('SUCCESS')
                 const token = getToken(payload.email)
-                return res.status(200).send({ code: 200, token, role: 'patient' })
+                return res.status(200).send({ token, role: 'patient' })
             })
 
         }
@@ -41,7 +42,7 @@ router.post('/login', (req, res) => {
     db.query(query, queryData, async (err, result) => {
         if (err || result.length !== 1) {
             console.log(err || 'LOGIN FAILED')
-            return res.status(401).send({ code: 401, err: "Login failed." })
+            return res.status(401).send({ err: "Login failed." })
         }
         else {
             console.log(result)
@@ -51,9 +52,9 @@ router.post('/login', (req, res) => {
 
                 // console.log(result[0].userID)
                 console.log(role)
-                res.status(200).send({ code: 200, token, role })
+                res.status(200).send({ token, role })
             } catch(err) {
-                return res.status(401).send({code: 401, err})
+                return res.status(401).send({ message })
             }
             
         }

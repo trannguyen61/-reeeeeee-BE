@@ -9,11 +9,11 @@ router.get('/prescription', auth, (req, res) => {
     console.log(req.url)
     const query = 'SELECT * FROM prescription JOIN checkUpForm ON prescription.checkUpForm= checkUpForm.formID WHERE patient = ? LIMIT ?, 2'
     db.query(query, [req.id, req.query.page*req.query.num], (err, result) => {
-        if (err) {console.log(err); return res.status(400).send({ code: 400, err: 'Fetch data failed.' })}
+        if (err) {console.log(err); return res.status(400).send({ message: 'Fetch data failed.' })}
 
         db.query('SELECT COUNT(*) as SUM FROM prescription JOIN checkUpForm ON prescription.checkUpForm= checkUpForm.formID WHERE patient = ?', req.id, (err, result2) => {
             // console.log(result)
-            res.status(200).send({ code: 200, result, dataLength: result2[0].SUM })    
+            res.status(200).send({ result, dataLength: result2[0].SUM })    
         })
     })
 })
@@ -28,10 +28,10 @@ router.post('/prescription', auth, (req, res) => {
     (err, result) => {
         if (err) {
             console.log(err)
-            return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+            return res.status(400).send({ message: 'Fetch data failed.' })
         }
 
-        res.status(200).send({ code: 200 })
+        res.status(200)
     })
 })
 

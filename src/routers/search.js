@@ -35,13 +35,13 @@ router.post('', auth, (req, res) => {
     if (req.query.search === 'prescription' || req.query.search === 'form') query += ` AND patient = ${req.id}`
 
     const a = db.query('SELECT * ' + query + limitQuery, (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+        if (err) return res.status(400).send({ message: 'Fetch data failed.' })
         console.log(result)
 
         db.query('SELECT COUNT(*) as SUM ' +query, (err, result2) => {
-            if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+            if (err) return res.status(400).send({ message: 'Fetch data failed.' })
             console.log(result2[0].SUM)
-            res.status(200).send({ code: 200, result, dataLength: result2[0].SUM })
+            res.status(200).send({ result, dataLength: result2[0].SUM })
         })
     })
     console.log(a.sql)
@@ -50,9 +50,9 @@ router.post('', auth, (req, res) => {
 router.get('/clinics', (req, res) => {
     const query = `SELECT clinicID, clinicName FROM clinics`
     db.query(query, (err, result) => {
-        if (err) return res.status(400).send({ code: 400, err: 'Fetch data failed.' })
+        if (err) return res.status(400).send({ message: 'Fetch data failed.' })
 
-        res.status(200).send({ code: 200, result })
+        res.status(200).send({ result })
     })
 })
 
