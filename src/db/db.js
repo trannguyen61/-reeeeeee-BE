@@ -7,6 +7,17 @@ const connection = sql.createPool({
     database: process.env.DB_NAME
 })
 
-global.db = connection;
+global.db = {
+    query(sql, args) {
+        return new Promise((resolve, reject) => {
+            connection.query(sql, args, (err, res) => {
+                if (err) reject(err)
+                resolve(res)
+            }) 
+        })
+    }
+}
+
+// global.db = connection;
 
 module.exports = connection

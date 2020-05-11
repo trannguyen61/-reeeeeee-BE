@@ -39,26 +39,35 @@ router.post('/login', (req, res) => {
 
     const query = 'SELECT userID FROM users WHERE email = ? AND userPassword = ?'
 
-    db.query(query, queryData, async (err, result) => {
-        if (err || result.length !== 1) {
-            console.log(err || 'LOGIN FAILED')
-            return res.status(401).send({ err: "Login failed." })
-        }
-        else {
-            console.log(result)
-            const token = getToken(payload.email)
-            try {
-                const role = await getRole(result[0].userID)
+    // db.query(query, queryData, async (err, result) => {
+    //     if (err || result.length !== 1) {
+    //         console.log(err || 'LOGIN FAILED')
+    //         return res.status(401).send({ err: "Login failed." })
+    //     }
+    //     else {
+    //         console.log(result)
+    //         const token = getToken(payload.email)
+    //         try {
+    //             const role = await getRole(result[0].userID)
 
-                // console.log(result[0].userID)
-                console.log(role)
-                res.status(200).send({ token, role })
-            } catch(err) {
-                return res.status(401).send({ message })
-            }
+    //             // console.log(result[0].userID)
+    //             console.log(role)
+    //             res.status(200).send({ token, role })
+    //         } catch(err) {
+    //             return res.status(401).send({ message })
+    //         }
             
-        }
-    })
+    //     }
+    // })
+
+    try {
+        await db.query(query, queryData)
+        const token = getToken(payload.email)
+        const role = await getRole(result[0].userID)
+        res.status(200).send({ token, role })    
+    } catch(e) {
+
+    }
 })
 
 const getToken = (email) => {
