@@ -2,14 +2,12 @@ const express = require('express')
 const router = new express.Router()
 const auth = require('../middleware/auth')
 
-// chua lam pres search
-
 // search 
 // /api/search?search=clinic&data=this%is%clinic&page=1&num=2
-router.post('', auth, (req, res) => {
-    console.log(req.query)
-    console.log(req.params)
-    console.log(req.url)
+router.post('/', auth, async (req, res) => {
+    // console.log(req.query)
+    // console.log(req.params)
+    // console.log(req.url)
     const queryData = {
         clinic: {
             table: 'clinics',
@@ -17,43 +15,45 @@ router.post('', auth, (req, res) => {
         },
         form: {
             table: 'checkupform',
-            data: 'checkUpDate'
+            data: 'checkUpDate',
+            optionalQuery: `AND patient = ${req.id}`
         },
         patient: {
             table: 'users',
-            data: 'email'
+            data: 'email',
+            joinQuery: `JOIN patients ON patientID = userID`
         },
         prescription: {
             table: 'prescription',
-            data: 'diagnosis'
+            data: 'diagnosis',
+            joinQuery: `JOIN checkUpForm ON prescription.checkUpForm = checkUpForm.formID`,
+            optionalQuery: `AND patient = ${req.id}`
         }
     }
+    let chosenData = queryData[req.query.search];
+
+    let condition = `FROM ${chosenData.table} ${chosenData.joinQuery ? chosenData.joinQuery : ''} WHERE ${chosenData.data} LIKE '%${decodeURIComponent(req.query.data)}%' ${chosenData.optionalQuery ? chosenData.optionalQuery : ''}`
+
     let limitQuery = ` LIMIT ${req.query.page*req.query.num}, ${req.query.num}`
-    let query = `FROM ${queryData[req.query.search].table} WHERE ${queryData[req.query.search].data} LIKE '%${decodeURIComponent(req.query.data)}%'`
-    if (req.query.search === 'patient') query = `FROM ${queryData[req.query.search].table} JOIN patients ON patientID = userID WHERE ${queryData[req.query.search].data} LIKE '%${decodeURIComponent(req.query.data)}%'`
-    else if (req.query.search === 'prescription') query = `FROM ${queryData[req.query.search].table} JOIN checkUpForm ON prescription.checkUpForm = checkUpForm.formID WHERE ${queryData[req.query.search].data} LIKE '%${decodeURIComponent(req.query.data)}%'`
-    if (req.query.search === 'prescription' || req.query.search === 'form') query += ` AND patient = ${req.id}`
-
-    const a = db.query('SELECT * ' + query + limitQuery, (err, result) => {
-        if (err) return res.status(400).send({ message: 'Fetch data failed.' })
-        console.log(result)
-
-        db.query('SELECT COUNT(*) as SUM ' +query, (err, result2) => {
-            if (err) return res.status(400).send({ message: 'Fetch data failed.' })
-            console.log(result2[0].SUM)
-            res.status(200).send({ result, dataLength: result2[0].SUM })
-        })
-    })
-    console.log(a.sql)
+    
+    try {
+        const result = await db.query('SELECT * ' + condition + limitQuery)
+        const sum = await db.query('SELECT COUNT(*) as SUM ' + condition)
+        return res.status(200).send({ result, dataLength: sum[0].SUM })
+    } catch(err) {
+        console.log(err)
+        return res.status(400).send({ message: 'Fetch data failed.' })
+    }
 })
 
-router.get('/clinics', (req, res) => {
-    const query = `SELECT clinicID, clinicName FROM clinics`
-    db.query(query, (err, result) => {
-        if (err) return res.status(400).send({ message: 'Fetch data failed.' })
-
-        res.status(200).send({ result })
-    })
+router.get('/clinics', async (req, res) => {
+    try {
+        const result = await db.query(`SELECT clinicID, clinicName FROM clinics`)
+        return res.status(200).send({ result })
+    } catch (err) {
+        console.log(err)
+        return res.status(400).send({ message: 'Fetch data failed.' })
+    }
 })
 
 module.exports = router
